@@ -66,8 +66,7 @@ This file compiles experimental results from literature and is used to assess sp
 
 The `Code/` folder contains all R scripts in the analysis.
 
-Key files include:
+Files include:
 
 - `Water level analysis.R` – Script to analyze hydrological regime and output figures
 - `flood tolerance.R` – Script to plot the flood tolerance curves of marsh plants
-- `03_generate_figures.R` – Generates plots for publication/report
