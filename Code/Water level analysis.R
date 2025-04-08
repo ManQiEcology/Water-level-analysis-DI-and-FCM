@@ -1,5 +1,6 @@
 rm(list=ls())
-setwd("/Users/user/Documents/2. paper/6. groundwater analysis paper(draft)/Groundwater/Clean data")
+setwd(here::here())
+
 library(readxl)
 #install.packages("lubridate")
 #install.packages("hydrostats")
@@ -7,17 +8,17 @@ library(hydrostats)
 library(lubridate)
 Sys.setlocale("LC_TIME", "English") #set the default system language to be English
 #1.load well info
-well_ele<-read.csv("Well info.txt",sep="", header = T)
+well_ele<-read.csv("Data/Well info.txt",sep="", header = T)
 #install.packages('Rcpp')
 library(Rcpp)
 ##########################################################################################
 #1. load logger depth file
 ##########################################################################################
 #1.1 load groundwater data of Deal Island
-DI_TC<-read_excel("20138781_DI_G_TC.xlsx")
-DI_H<-read_excel("20574343_DI_G_H.xlsx")
-DI_E<-read_excel("20574344_DI_G_E.xlsx")
-DI_P<-read_excel("20292500_DI_G_P.xlsx")
+DI_TC<-read_excel("Data/20138781_DI_G_TC.xlsx")
+DI_H<-read_excel("Data/20574343_DI_G_H.xlsx")
+DI_E<-read_excel("Data/20574344_DI_G_E.xlsx")
+DI_P<-read_excel("Data/20292500_DI_G_P.xlsx")
 #assign site name to sensor depth
 DI_TC$DI_TC<-DI_TC$`Sensor depth (Meters)`
 DI_H$DI_H<-DI_H$`Sensor depth (Meters)`
@@ -37,9 +38,9 @@ DI_SD$DateTime<-ymd_hms(DI_SD$DateTime,tz="US/Eastern") #define time with lubrid
 rm(DI_E,DI_H,DI_P,DI_TC,DI)
 
 #1.2 load groundwater of Farm Creek Marsh
-FCM_HC<-read_excel("20574349_FCM_G_HC.xlsx")
-FCM_DC<-read_excel("20574347_FCM_G_DC.xlsx")
-FCM_PC<-read.csv("Site4S-FCM_G_PC.csv",header = T)#the time is in EST
+FCM_HC<-read_excel("Data/20574349_FCM_G_HC.xlsx")
+FCM_DC<-read_excel("Data/20574347_FCM_G_DC.xlsx")
+FCM_PC<-read.csv("Data/Site4S-FCM_G_PC.csv",header = T)#the time is in EST
 #Sensor depth of healthy and dieback
 FCM_HC$FCM_HC<-FCM_HC$`Sensor depth (Meters)`
 FCM_DC$FCM_DC<-FCM_DC$`Sensor depth (Meters)`
@@ -84,7 +85,7 @@ FCM_WL_MSL<-data.frame("DateTime"=FCM_SD$DateTime,
                        E=FCM_SD$E+0.5*(surface_elevation[6]-Logger_depth[6]+logger_elevation[6]))# since marsh surface elevation and well elevation increased by 0.58 cm from 2019 May to 2020 March, we use average logger height
 
 #load bishop tide water,Datum:NAVD88
-bishop<-as.data.frame(read.csv("bishop.csv",header = T))
+bishop<-as.data.frame(read.csv("Data/bishop.csv",header = T))
 bishop$DateTime<-paste(bishop$Date,bishop$Time..GMT.) #merge data and hm
 bishop$DateTime<-ymd_hm(bishop$DateTime,tz="GMT") #define the date format with GMT time zone
 bishop$DateTime<-with_tz(bishop$DateTime,tz="US/Eastern") # convert the time zone to US/Eastern
