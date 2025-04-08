@@ -72,8 +72,8 @@ FCM_PC<-subset(FCM_PC,DateTime>min(FCM_SD$DateTime,na.rm = T)&DateTime<max(FCM_S
 #2. Turn water depth to water level relative to MSL (NAVD1988)
 Logger_depth<-well_ele$Logger_depth_2019_.cm./100#logger depth has a unit of cm, transfer to m
 surface_elevation<-well_ele$Soil_surface_elevation.m._2019
-logger_elevation<-well_ele$Well_top_elevation.m._2020-well_ele$Well_top_to_logger.cm./100 #consider well height and well top to logger doesb't change much, within 2cm from 2019 to 2020, thus use this to calculate water level
-#for DI, calckulate water depth relatuve to Mean Sea Level (NAVD1988)
+logger_elevation<-well_ele$Well_top_elevation.m._2020-well_ele$Well_top_to_logger.cm./100 #consider well height and well top to logger doesn't change much, within 2cm from 2019 to 2020, thus use this to calculate water level
+#for DI, calculate water depth relative to Mean Sea Level (NAVD1988)
 DI_WL_MSL<-data.frame("DateTime"=DI_SD$DateTime,
                       TC=DI_SD$TC-Logger_depth[1]+surface_elevation[1], 
                       H=DI_SD$H+surface_elevation[4]-Logger_depth[4], #marsh elevation might decreased by 4cm from 2019 May to 2020 March
