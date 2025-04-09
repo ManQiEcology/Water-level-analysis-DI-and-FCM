@@ -87,38 +87,3 @@ P+facet_grid(rows = vars(Species),scales="free")+
   theme(panel.grid.major = element_blank(),
         panel.grid.minor = element_blank())
 dev.off()
-
-#NOT USED validated inundation tolerance line
-data_nm$vldt_inundation<-3.45+0.5526*data_nm$Inundation #the parameter were acquired from 'model 3' at line 338 of 'comparision with bishop water gauge'
-tiff("Result/validated response to inudnation.tiff",  unit="in",width =4, height =5, res= 600,pointsize = 14)
-P<-ggplot(data_nm,fill=Species)+
-  geom_point(aes(x=Inundation, y=nm,fill=Species,colour=Species), shape=1, size=1)+
-  geom_smooth(aes(x=Inundation, y=nm, colour=Species, fill=Species),method = "lm", formula = y ~ poly(x, 2))+
-  geom_smooth(aes(x=vldt_inundation, y=nm), se = FALSE,color="Black",span = 0.3,method = "lm",  formula = y ~ poly(x, 2))+
-  scale_linetype_manual(values=c("dashed"))+
-  xlab("Inundation duration")+
-  ylab("Performance")
-P+facet_grid(rows = vars(Species),scales="free")+
-  theme_bw()+
-  theme(panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank())
-
-dev.off()
-#==========================================
-#NOT USED get the regression equation in "response to inudnation.tiff"
-data_nm_Juncus<-subset(data_nm,Species=="J. roemerianus")
-model_Juncus <- lm(data=data_nm_Juncus,formula=nm ~ poly(Inundation,2))
-summary(model_Juncus)
-
-data_nm_alterniflora<-subset(data_nm,Species=="S. alterniflora")
-model_alterniflora <- lm(data=data_nm_alterniflora,formula=nm ~ poly(Inundation,2))
-summary(model_alterniflora)
-
-data_nm_americanus<-subset(data_nm,Species=="S. americanus")
-model_americanus <- lm(data=data_nm_americanus,formula=nm ~ poly(Inundation,2))
-summary(model_americanus)
-
-data_nm_patens<-subset(data_nm,Species=="S. patens")
-model_patens <- lm(data=data_nm_patens,formula=nm ~ poly(Inundation,2))
-summary(model_patens)
-
