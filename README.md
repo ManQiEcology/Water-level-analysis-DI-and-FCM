@@ -68,5 +68,5 @@ The `Code/` folder contains all R scripts in the analysis.
 
 Files include:
 
-- `Water level analysis.R` – Script to analyze hydrological regime and output figures
+- `Water level analysis.R` – Script to analyze hydrological regime and output figures in the main text and supplements.
 - `flood tolerance.R` – Script to plot the flood tolerance curves of marsh plants
