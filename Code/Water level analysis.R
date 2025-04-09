@@ -31,8 +31,8 @@ DI<-merge(DI,DI_E,by="Time, GMT-04:00")
 DI<-merge(DI,DI_P,by="Time, GMT-04:00")
 #extract groundwater data from different sites of Deal Island and generate groundwater data file for Deal Island
 DI_SD<-data.frame("DateTime"=DI$`Time, GMT-04:00`,TC=DI$DI_TC,H=DI$DI_H,E=DI$DI_E,P=DI$DI_P)
-DI_SD$DateTime<-ymd_hms(DI_SD$DateTime,tz="US/Eastern") #define time with lubridate
-#DI_SD above contains sensor depth data of Deal Island
+#DI_SD$DateTime<-ymd_hms(DI_SD$DateTime,tz="US/Eastern") #define time with lubridate
+DI_SD$DateTime <- lubridate::force_tz(DI_SD$DateTime, tzone = "US/Eastern")
 
 #remove original DI dataset
 rm(DI_E,DI_H,DI_P,DI_TC,DI)
@@ -47,7 +47,8 @@ FCM_DC$FCM_DC<-FCM_DC$`Sensor depth (Meters)`
 FCM<-NULL
 FCM<-merge(FCM_HC,FCM_DC,by="Time, GMT-04:00")
 FCM_SD<-data.frame("DateTime"=FCM$`Time, GMT-04:00`,H=FCM$FCM_HC,E=FCM$FCM_DC) #datetime in EST
-FCM_SD$DateTime<-ymd_hms(FCM_SD$DateTime,tz="US/Eastern") #define time with lubridate
+#FCM_SD$DateTime<-ymd_hms(FCM_SD$DateTime,tz="US/Eastern") #define time with lubridate
+FCM_SD$DateTime <- lubridate::force_tz(FCM_SD$DateTime, tzone = "US/Eastern")
 FCM_SD<-subset(FCM_SD,DateTime>min(DI_SD$DateTime,na.rm = T)&DateTime<max(DI_SD$DateTime,na.rm = T))
 #FCM_SD above contains sensor depth data healthy (H) and dieback (E) from May 2019 to March 2020
 #remove orginal dataset from FCM
@@ -95,6 +96,7 @@ bishop<-subset(bishop,DateTime>min(FCM_SD$DateTime,na.rm = T)&DateTime<max(FCM_S
 bishoplus0.07<-data.frame(DateTime=bishop$DateTime,
                           TH=bishop$TH+0.07) #water level in DI_TC is 0.07higher than that in bishop, so use bishop+0.07 as replacement
 DI_WL_MSL$TC[which(DI_WL_MSL$TC<=0)]<-NA #it is found that data is incorrect when water level of DI_TC is less than zero, thus replace this value with NA
+DI_WL_MSL$TC[which(DI_WL_MSL$TC<=0)]<-NA #it is found that data is incorrect when water level of DI_TC is less than zero, thus replace this value with NA
 
 for (i in which(is.na(DI_WL_MSL$TC)==T)) { #replace NA data with bishop+0.07
   x<-which(bishoplus0.07$DateTime==DI_WL_MSL$DateTime[i])
@@ -112,7 +114,7 @@ DI_WL_MSL$TC[which(is.na(DI_WL_MSL$TC)==T)] <- a$y
 ################################################################################
 Marsh_surf_ele<-well_ele$Soil_surface_elevation.m._2019
 par(mai<-c(0.1,0.1,0.1,0.5),cex=1,font=1,cex.lab=1,cex.axis=1,cex.main=1)
-tiff("Water level 2019-2020 .tiff",units="in",width = 6,height=8,res=300)
+tiff("Result/Water level 2019-2020 .tiff",units="in",width = 6,height=8,res=300)
 par(mfrow=c(2,1))
 
 plot(DI_WL_MSL$DateTime,DI_WL_MSL$TC,type="l",col="grey", 
@@ -177,7 +179,7 @@ hist_FCM$Zone<-factor(hist_FCM$Zone,levels=unique(hist_FCM$Zone))
 
 #plot DI
 library(ggplot2)
-tiff("histogram DI 2019-2020 .tiff",units="in",width = 3.5,height=1.5,res=300)
+tiff("Result/histogram DI 2019-2020 .tiff",units="in",width = 3.5,height=1.5,res=300)
 DI<-ggplot(hist_DI, aes(x = WL, fill = Zone)) +                       # Draw overlaying histogram
   geom_histogram(aes(y = stat(width*density)), position = "identity", alpha = 0.6, bins =100)+
   scale_y_continuous(labels = scales::percent_format(),limits = c(0,0.2))+
@@ -196,13 +198,10 @@ DI<-ggplot(hist_DI, aes(x = WL, fill = Zone)) +                       # Draw ove
         panel.grid.minor = element_blank(),
         panel.border = element_blank())
 DI+scale_fill_manual(values = c("black", "seagreen", "darkorange", "royalblue"))
-stat(width*density)
 dev.off()
-geom_histogram(aes(y= stat(width*density)),binwidth = 1.5,position="dodge",alpha=0.5)+
-  geom_density(alpha=0.2)+
 
 #plot FCM                    
-tiff("histogram FCM 2019-2020 .tiff",units="in",width = 3.5,height=1.5,res=300)
+tiff("Result/histogram FCM 2019-2020 .tiff",units="in",width = 3.5,height=1.5,res=300)
 FCM<-ggplot(hist_FCM, aes(x = WL, fill = Zone)) +                       # Draw overlaying histogram
   geom_histogram(aes(y = stat(width*density)), position = "identity", alpha = 0.6, bins =100)+
   scale_y_continuous(labels = scales::percent_format(),limits = c(0,0.2))+
@@ -263,12 +262,11 @@ FCM_P_hydrpd<-hydrpd(FCM_WL_SS_P[2])
 #Elevation derived
 hydrpd_ele_drv<-as.matrix(bishop[3:9],col=7)
 hydrpd_ele_drv<-apply(hydrpd_ele_drv,2,hydrpd)
-hydrpd_TCNA<-subset(hydrpd,hydrpd$Zone!="TC")
 #construct hydroperiod data frame
 hydrpd<-data.frame(Hydroperiod=c(DI_hydrpd,FCM_HE_hydrpd,FCM_P_hydrpd,hydrpd_ele_drv),
                    Zone=c("TC","VG","DB","PD","VG","DB", "PD",
                           "TC","VG","DB","PD","VG","DB", "PD"),
-                   Method=c(rep("Observed",7),rep("Estimation",7)),
+                   Method=c(rep("Observed",7),rep("Estimated",7)),
                    Site=factor(rep(c(rep("DI",4),rep("FCM",3)),2),levels=unique(rep(c(rep("DI",4),rep("FCM",3)),2))))
 hydrpd$SiteZone=factor(paste(hydrpd$Site,hydrpd$Zone),levels=unique(paste(hydrpd$Site,hydrpd$Zone)))
 ele<-well_ele$Soil_surface_elevation.m._2019
@@ -280,7 +278,7 @@ library(ggrepel)
 hydrpd_TCNA<-subset(hydrpd,hydrpd$Zone!="TC")
 hydrpd_TC<-subset(hydrpd,hydrpd$Zone=="TC")
 
-tiff("SSI or hydroperiod.tiff", unit="in",width = 2.3, height =2.3, res= 600,pointsize = 14 )
+tiff("Result/SSI or hydroperiod.tiff", unit="in",width = 2.3, height =2.3, res= 600,pointsize = 14 )
 p<-ggplot(hydrpd_TCNA,aes(x=Elevation,y=Hydroperiod,fill=Method))+
   geom_point(aes(colour=Method,shape=Site),size=2)+
   scale_shape_manual(values=c(1, 19))+
@@ -324,10 +322,10 @@ summary(model2)
 ################################################################################
 #6. FIGURE 3 sensitivity to elevation loss
 ################################################################################
-
-SSI<-0.0 #for FIGURE 3a- hydroperiod
-#SSI<-0.2 #for for FIGURE 3b-SSI0.2
-DI_WL_SS<-data.frame("DateTime"=DI_WL_MSL$DateTime,
+#6.1 caculate SSI at Marsh interior
+#SSI<-0.0 #for FIGURE 3a- hydroperiod
+SSI<-0.2 #for for FIGURE 3b-SSI0.2
+DI_WL_SS_ele<-data.frame("DateTime"=DI_WL_MSL$DateTime,
                      H=DI_WL_MSL$H-surface_elevation[4]+SSI,
                      E=DI_WL_MSL$E-surface_elevation[2]+SSI,
                      P=DI_WL_MSL$P-surface_elevation[3]+SSI,
@@ -347,7 +345,7 @@ DI_WL_SS<-data.frame("DateTime"=DI_WL_MSL$DateTime,
                      H0.05=DI_WL_MSL$H-0.05+SSI,
                      H0.0=DI_WL_MSL$H-0.0+SSI)
                      
-#5.2 cacculate elevation drived water level relative to soil surface with tidal gauge records and elevation
+#6.2 caculate SSI at tidal creek
 bishop$DIH<-bishop$TH-surface_elevation[4]+SSI
 bishop$DIE<-bishop$TH-surface_elevation[2]+SSI
 bishop$DIP<-bishop$TH-surface_elevation[3]+SSI
@@ -367,7 +365,7 @@ bishop$H0.1<-bishop$TH-0.1+SSI
 bishop$H0.05<-bishop$TH-0.05+SSI
 bishop$H0.0<-bishop$TH-0.0+SSI
 
-#5.3. compare hydroperiod                                                                  #
+#6.3. compare SSI                                                                #
 ##########################################################################################
 hydrpd <-function(x){
   y<-sum(x>0,na.rm=T)/sum(1-is.na(x),na.rm=T)
@@ -375,7 +373,7 @@ hydrpd <-function(x){
 }
 ##in situ reading
 #DI
-DI_hydrpd<-as.matrix(DI_WL_SS[2:19],ncol=18)
+DI_hydrpd<-as.matrix(DI_WL_SS_ele[2:19],ncol=18)
 DI_hydrpd<-apply(DI_hydrpd,2,hydrpd)
 
 #Elevation derived
@@ -386,14 +384,14 @@ hydrpd_ele_drv<-apply(hydrpd_ele_drv,2,hydrpd)
 hydrpd_DI<-data.frame(Hydroperiod=c(DI_hydrpd,hydrpd_ele_drv),
                    Zone=rep(c("VG","DB","PD","H0.7","H0.65","H0.6","H0.55","H0.5","H0.45","H0.4","H0.35","H0.3","H0.25","H0.2","H0.15","H0.1","H0.05","H0.00"),2),
                    Section=c(rep("Interior marsh",18),rep("Creek bank",18)),
-                   Site=factor(c(rep("Observed",3),rep("Estimated",33)),levels=unique(c(rep("Monitored",3),rep("Simulated",15)))))
+                   Site=factor(c(rep("Observed",3),rep("Estimated",33)),levels=unique(c(rep("Observed",3),rep("Estimated",33)))))
 
 
 ele<-well_ele$Soil_surface_elevation.m._2019
 hydrpd_DI$Elevation<-rep(c(ele[4],ele[2],ele[3],0.7,0.65,0.6,0.55,0.5,0.45,0.4,0.35,0.3,0.25,0.2,0.15,0.1,0.05,0.0),2)
 library(ggrepel)
 library(ggplot2)
-tiff("Fig. 7-DI-SS0.0.tiff", unit="in",width = 3, height =3, res= 600,pointsize = 14 )
+tiff("Result/Fig. 7-DI-SS0.0.tiff", unit="in",width = 3, height =3, res= 600,pointsize = 14 )
 ggplot(hydrpd_DI,aes(x=Elevation,y=Hydroperiod,fill=Section))+
   geom_point(aes(colour=Section,shape=Site),size=2)+
   scale_shape_manual(values=c(8,19))+
@@ -420,59 +418,9 @@ ggplot(hydrpd_DI,aes(x=Elevation,y=Hydroperiod,fill=Section))+
     panel.border = element_blank())
 dev.off()
 
-############################################################################################
-#NOT USED-plot elevation devired result and insitu observation-with tidal creek data
-tiff("elevation derived vs in situ observation with tidal creek.tiff", unit="in",width = 3.5, height =3.5, res= 600,pointsize = 9 )
-par(mar=c(5,5,1,1))
-insitu<-subset(hydrpd,Method=="Observed")
-ed<-subset(hydrpd,Method=="Estimated")
-data<-data.frame(x=insitu$Hydroperiod, y=ed$Hydroperiod,SiteZone=ed$SiteZone)
-ggplot(data,aes(x=x*100,y=y*100))+
-  geom_point(aes(x=x*100,y=y*100),shape=19,size=2)+
-  geom_smooth(aes(),method = "lm", formula = y ~ poly(x, 2))+
-  geom_text_repel(aes(label=SiteZone),hjust=-0.5,vjust=0, alpha=1,size=3)+
-  labs(x = "Observed",y = "Estimated")+
-  xlim(0,100)+
-  ylim(0,100)+
-  theme_bw()  +
-  theme(legend.position = c(0.2,1),
-        axis.line = element_line(color='black'),
-        plot.background = element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        panel.border = element_blank())
-dev.off()
-
-#NOT_USED plot elevation devired result and insitu observation-with tidal creek data
-tiff("elevation derived vs in situ observation without tidal creek.tiff", unit="in",width = 3.5, height =3.5, res= 600,pointsize = 9 )
-par(mar=c(5,5,1,1))
-insitu<-subset(hydrpd,Method=="Observed")
-ed<-subset(hydrpd,Method=="Estimated")
-data<-data.frame(x=insitu$Hydroperiod, y=ed$Hydroperiod,SiteZone=ed$SiteZone)
-data<-data[-1,]
-ggplot(data,aes(x=x*100,y=y*100))+
-  geom_point(aes(x=x*100,y=y*100),shape=19,size=2)+
-  geom_smooth(aes(),method = "lm", formula = y ~ x)+
-  geom_text_repel(aes(label=SiteZone),hjust=-0.5,vjust=0, alpha=1,size=3)+
-  labs(x = "Observed",y = "Estimated")+
-  xlim(0,100)+
-  ylim(0,100)+
-  theme_bw()  +
-  theme(legend.position = c(0.2,0.20),
-        axis.line = element_line(color='black'),
-        plot.background = element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        panel.border = element_blank())
-dev.off()
-#NOT USED get the regression equation in "elevation derived vs Observed without tidal creek.tiff"
-model3 <- lm(data=data,formula=y ~ x)
-summary(model3)
-
 
 ##########################################################################################
-
-#6. keep time series with a 1hr interval
+#7. keep time series with a 1hr interval
 #############################################################################################
 # extract hourly date series from DI and FCM
 Time_DI<-intersect(DI_SD$DateTime,bishop$DateTime)
@@ -487,7 +435,7 @@ FCM_WL_SS_HE_hr<-subset(FCM_WL_SS_HE,is.element(DateTime,Time_FCM_HE))
 FCM_WL_MSL_P_hr<-subset(FCM_PC,is.element(DateTime,Time_FCM_P))
 FCM_WL_SS_P_hr<-subset(FCM_WL_SS_P,is.element(DateTime,Time_FCM_P))
 
-#9. flood events duration                                                                #
+#8. flood events duration                                                                #
 ##########################################################################################
 #construct a function to recognize continious time and the length of continious time
 FD<-function(fld_date) {
@@ -592,7 +540,7 @@ fld_date<-bishop$DateTime[which(bishop$DITC>=0)]
 FD_bishop_DITC<-FD(fld_date)
 FD_bishop_DITC$Site<-"DI"
 FD_bishop_DITC$Zone<-"Tidal creek"
-FD_bishop_DITC$Method<-"Estimation"
+FD_bishop_DITC$Method<-"Estimated"
 
 #bishop_DIH
 
@@ -600,14 +548,14 @@ fld_date<-bishop$DateTime[which(bishop$DIH>=0)]
 FD_bishop_DIH<-FD(fld_date)
 FD_bishop_DIH$Site<-"DI"
 FD_bishop_DIH$Zone<-"Vegetated zone"
-FD_bishop_DIH$Method<-"Estimation"
+FD_bishop_DIH$Method<-"Estimated"
 
 #bishop_DIE
 fld_date<-bishop$DateTime[which(bishop$DIE>=0)] 
 FD_bishop_DIE<-FD(fld_date)
 FD_bishop_DIE$Site<-"DI"
 FD_bishop_DIE$Zone<-"Dieback zone"
-FD_bishop_DIE$Method<-"Estimation"
+FD_bishop_DIE$Method<-"Estimated"
 
 
 #bishop_DIP
@@ -615,28 +563,28 @@ fld_date<-bishop$DateTime[which(bishop$DIP>=0)]
 FD_bishop_DIP<-FD(fld_date)
 FD_bishop_DIP$Site<-"DI"
 FD_bishop_DIP$Zone<-"Pond"
-FD_bishop_DIP$Method<-"Estimation"
+FD_bishop_DIP$Method<-"Estimated"
 
 #bishop_FCMHC
 fld_date<-bishop$DateTime[which(bishop$FCMHC>=0)] 
 FD_bishop_FCMHC<-FD(fld_date)
 FD_bishop_FCMHC$Site<-"FCM"
 FD_bishop_FCMHC$Zone<-"Vegetated zone"
-FD_bishop_FCMHC$Method<-"Estimation"
+FD_bishop_FCMHC$Method<-"Estimated"
 
 #bishop_FCMDC
 fld_date<-bishop$DateTime[which(bishop$FCMDC>=0)] 
 FD_bishop_FCMDC<-FD(fld_date)
 FD_bishop_FCMDC$Site<-"FCM"
 FD_bishop_FCMDC$Zone<-"Dieback zone"
-FD_bishop_FCMDC$Method<-"Estimation"
+FD_bishop_FCMDC$Method<-"Estimated"
 
 #bishop FCMP
 fld_date<-bishop$DateTime[which(bishop$FCMPC>=0)] 
 FD_bishop_FCMP<-FD(fld_date)
 FD_bishop_FCMP$Site<-"FCM"
 FD_bishop_FCMP$Zone<-"Pond"
-FD_bishop_FCMP$Method<-"Estimation"
+FD_bishop_FCMP$Method<-"Estimated"
 
 FD_derived<-rbind(FD_bishop_DITC,FD_bishop_DIH,FD_bishop_DIE,FD_bishop_DIP,FD_bishop_FCMHC,FD_bishop_FCMDC,FD_bishop_FCMP)
 FD_derived$Site<-factor(FD_derived$Site,levels=unique(FD_derived$Site))
@@ -649,7 +597,7 @@ FD<-subset(FD,Zone!="Tidal creek")
 ############################################################################
 #9.2 plot histgram of inundation duration with in situ groundwater readings#
 ############################################################################
-tiff("inundation duration with in situ groundwater readings 2019-2020.tiff",unit="in",width = 6, height =4, res= 600,pointsize = 14 )
+tiff("Result/inundation duration with in situ groundwater readings 2019-2020.tiff",unit="in",width = 6, height =4, res= 600,pointsize = 14 )
 library(plyr)
 mu <- ddply(FD, c("Zone","Site","Method"), summarise, grp.mean=mean(`Duration (hr)`))
 
@@ -683,174 +631,5 @@ p<-ggplot(FD, aes(x=`Duration (hr)`, color=Zone, fill=Zone)) +
 p+facet_grid(rows=vars(Site),cols = vars(Method))+
   scale_fill_manual(values=c("seagreen", "darkorange", "royalblue"))+
   scale_color_manual(values=c("seagreen", "darkorange", "royalblue"))
-  
+
 dev.off()
-
-
-#<below was not used in  the paper>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-####################################################################
-#NOT USED 9.5 calculate drought event duration from in situ reading#                  
-####################################################################
-#DI_TC
-SRC_data<-Ovlap_DI_TC
-fld_date<-SRC_data$`Time, GMT-04:00`[which(SRC_data$`Water level(m)`<0)] 
-DD_DI_TC<-FD(fld_date)
-DD_DI_TC$Site<-"DI Tidal Creek"
-#DI_H
-SRC_data<-Ovlap_DI_H
-fld_date<-SRC_data$`Time, GMT-04:00`[which(SRC_data$`Water level(m)`<0)] 
-DD_DI_H<-FD(fld_date)
-DD_DI_H$Site<-"DI Vegetated marsh"
-#DI_E
-SRC_data<-Ovlap_DI_E
-fld_date<-SRC_data$`Time, GMT-04:00`[which(SRC_data$`Water level(m)`<0)] 
-DD_DI_E<-FD(fld_date)
-DD_DI_E$Site<-"DI Dieback patch"
-#DI_P
-SRC_data<-Ovlap_DI_P
-fld_date<-SRC_data$`Time, GMT-04:00`[which(SRC_data$`Water level(m)`<0)] 
-DD_DI_P<-FD(fld_date)
-DD_DI_P$Site<-"DI Pond"
-#FCM_HC
-SRC_data<-Ovlap_FCM_HC
-fld_date<-SRC_data$`Time, GMT-04:00`[which(SRC_data$`Water level(m)`<0)] 
-DD_FCM_HC<-FD(fld_date)
-DD_FCM_HC$Site<-"FCM Vegetated marsh"
-#FCM_DC
-SRC_data<-Ovlap_FCM_DC
-fld_date<-SRC_data$`Time, GMT-04:00`[which(SRC_data$`Water level(m)`<0)] 
-DD_FCM_DC<-FD(fld_date)
-DD_FCM_DC$Site<-"FCM Dieback patch"
-#since DI_E and DI_P has no droungt events, so for the integraty of data, construct two data frame representing them
-DD_DI_E<-DD_DI_TC[1,]
-DD_DI_E$`Begin time`<-NA
-DD_DI_E$`End time`<-NA
-DD_DI_E$`Duration (hr)`<-0
-DD_DI_E$Site<-"DI Dieback patch"
-DD_DI_P<-DD_DI_E
-DD_DI_P$Site<-"DI Pond"
-DD_insitu<-rbind(DD_DI_TC,DD_DI_H,
-                 DD_DI_E,DD_DI_P,
-                 DD_FCM_HC,DD_FCM_DC)
-DD_insitu$Site<-factor(DD_insitu$Site,levels=unique(DD_insitu$Site))
-############################################################################
-#NOT USED 9.6 plot histgram of drought duration with in situ groundwater readings#
-############################################################################
-tiff("Drought duration with in situ groundwater readings.tiff",unit="in",width = 6, height =4, res= 600,pointsize = 14 )
-library(plyr)
-mu <- ddply(DD_insitu, "Site", summarise, grp.mean=mean(`Duration (hr)`))
-
-p<-ggplot(DD_insitu, aes(x=`Duration (hr)`, color=Site, fill=Site)) +
-  ylim(0,125)+
-  xlim(0,25)+
-  geom_histogram(binwidth = 0.5,position="dodge",alpha=0.5)+
-  geom_vline(data=mu, aes(xintercept=grp.mean, color=Site),
-             linetype="dashed")+# Add mean lines
-  labs(x = "Drought duration (hr)",
-       y = "Number of drought events") +
-  theme_bw()  +
-  theme(panel.grid=element_blank(),
-        plot.title = element_text(size = rel(1.5),
-                                  face = "bold", vjust = 1.5),
-        axis.title = element_text(face = "bold"),
-        legend.direction = "horizontal", 
-        legend.background = element_rect(fill = NA),
-        legend.position =c(0.7, 0.9),
-        legend.title = element_blank(),
-        legend.key.size = unit(0.4, "cm"),
-        #legend.key = element_rect(fill = "black"),
-        axis.title.y = element_text(vjust= 1.8),
-        axis.title.x = element_text(vjust= -0.5)
-  )
-p
-dev.off()
-############################################################################
-#NOT USED 9.7 calculate drought event duration from elevation derived data#
-############################################################################
-#bishop_DITC
-SRC_data<-Ovlap_bishop$DITC
-fld_date<-Ovlap_bishop$Time_GMT_4[which(SRC_data<0)] 
-DD_bishop_DITC<-FD(fld_date)
-DD_bishop_DITC$Site<-"DI tidal creek"
-#bishop_DIH
-SRC_data<-Ovlap_bishop$DIH
-fld_date<-Ovlap_bishop$Time_GMT_4[which(SRC_data<0)] 
-DD_bishop_DIH<-FD(fld_date)
-DD_bishop_DIH$Site<-"DI Vegetated marsh"
-#bishop_DIE
-SRC_data<-Ovlap_bishop$DIE
-fld_date<-Ovlap_bishop$Time_GMT_4[which(SRC_data<0)] 
-DD_bishop_DIE<-FD(fld_date)
-DD_bishop_DIE$Site<-"DI Dieback patch"
-#bishop_DIP
-SRC_data<-Ovlap_bishop$DIP
-fld_date<-Ovlap_bishop$Time_GMT_4[which(SRC_data<0)] 
-DD_bishop_DIP<-FD(fld_date)
-DD_bishop_DIP$Site<-"DI Pond"
-
-#bishop_FCMHC
-SRC_data<-Ovlap_bishop$FCMHC
-fld_date<-Ovlap_bishop$Time_GMT_4[which(SRC_data<0)] 
-DD_bishop_FCMHC<-FD(fld_date)
-DD_bishop_FCMHC$Site<-"FCM Vegetated marsh"
-#bishop_FCMDC
-SRC_data<-Ovlap_bishop$FCMDC
-fld_date<-Ovlap_bishop$Time_GMT_4[which(SRC_data<0)] 
-DD_bishop_FCMDC<-FD(fld_date)
-DD_bishop_FCMDC$Site<-"FCM Dieback patch"
-DD_bishop<-rbind(DD_bishop_DITC,DD_bishop_DIH,DD_bishop_DIE,DD_bishop_DIP,DD_bishop_FCMHC,DD_bishop_FCMDC)
-DD_bishop$Site<-factor(DD_bishop$Site,levels=unique(DD_bishop$Site))
-############################################################################
-#NOT USED 9.8 plot histgram of drought duration with elevation derived groundwater#
-############################################################################
-
-tiff("Drought duration with elevation derived groundwater.tiff",unit="in",width = 6, height =4, res= 600,pointsize = 14 )
-library(plyr)
-library(ggplot2)
-mu <- ddply(DD_bishop, "Site", summarise, grp.mean=mean(`Duration (hr)`))
-
-p<-ggplot(DD_bishop, aes(x=`Duration (hr)`, color=Site, fill=Site)) +
-  ylim(0,125)+
-  xlim(0,25)+
-  geom_histogram(binwidth = 0.5,position="dodge",alpha=0.5)+
-  geom_vline(data=mu, aes(xintercept=grp.mean, color=Site),
-             linetype="dashed")+# Add mean lines
-  labs(x = "drought duration (hr)",
-       y = "Number of drought events") +
-  theme_bw()  +
-  theme(panel.grid=element_blank(),
-        plot.title = element_text(size = rel(1.5),
-                                  face = "bold", vjust = 1.5),
-        axis.title = element_text(face = "bold"),
-        legend.direction = "horizontal", 
-        legend.background = element_rect(fill = NA),
-        legend.position =c(0.7, 0.9),
-        legend.title = element_blank(),
-        legend.key.size = unit(0.4, "cm"),
-        #legend.key = element_rect(fill = "black"),
-        axis.title.y = element_text(vjust= 1.8),
-        axis.title.x = element_text(vjust= -0.5)
-  )
-p
-dev.off()
-
-
-
-

@@ -1,8 +1,9 @@
 #processing data extracted from papers
-rm(list=ls())
 
-setwd("/Users/user/Documents/2. paper/6. groundwater analysis paper(draft)/plant inundation toleration line")
-data<-readxl::read_excel("flood tolerance extracted from papers.xls")
+rm(list=ls())
+setwd(here::here())
+
+data<-readxl::read_excel("Data/flood tolerance extracted from papers.xls")
 
 data$Species<-factor(data$Species)
 data$Index<-factor(data$Index)
@@ -34,7 +35,7 @@ data_nm$organ<-factor(data_nm$organ)
 library(ggplot2)
 data_nm$ele_dr_inundation<-data_nm$Inundation*0.5526+3.45 #this parameter were acquired from model 3 at line 338 of "comparison with bishop water gauge
 #plot the response of aboveground-belowground biomass of marsh species to inundation from different regions/studies  
-tiff("Fig. S4-above and below- ground response to inudnation in different studies.tiff",  unit="in",width =5, height =5, res= 600,pointsize = 14)
+tiff("Result/Fig. S4-above and below- ground response to inudnation in different studies.tiff",  unit="in",width =5, height =5, res= 600,pointsize = 14)
 P<-ggplot(data_nm, aes(x=Inundation, y=nm),fill=Source)+
   geom_point(aes(x=Inundation, y=nm,fill=Source,colour=Source), shape=3, size=0.5)+
   geom_smooth(aes(colour=Source, fill=Source),method = "lm", formula = y ~ poly(x, 2))+
@@ -47,7 +48,7 @@ P+facet_grid(rows = vars(Species),scales="free",cols=vars(organ))+
 dev.off()
 
 #plot the response marsh species to inundation  (merge above- and below- ground biomass response and studies from different regions)
-tiff("response to inudnation in DI.tiff",  unit="in",width =2.5, height =5, res= 600,pointsize = 14)
+tiff("Result/response to inudnation in DI.tiff",  unit="in",width =2.5, height =5, res= 600,pointsize = 14)
 P<-ggplot(data_nm, aes(x=Inundation, y=nm),fill=Species)+
   #geom_rect(aes(xmin=34.18734, xmax=65.0834, ymin=0,ymax=1), alpha=0.01, fill="seagreen")+
   geom_vline(xintercept=38.48448, col="forestgreen", linetype=2, size=1)+ #for DI vegetated estimated
@@ -67,7 +68,7 @@ P+facet_grid(rows = vars(Species),scales="free")+
         panel.grid.minor = element_blank())
 dev.off()
 
-tiff("response to inudnation in FCM.tiff",  unit="in",width =2.5, height =5, res= 600,pointsize = 14)
+tiff("Result/response to inudnation in FCM.tiff",  unit="in",width =2.5, height =5, res= 600,pointsize = 14)
 P<-ggplot(data_nm, aes(x=Inundation, y=nm),fill=Species)+
   #geom_rect(aes(xmin=34.18734, xmax=65.0834, ymin=0,ymax=1), alpha=0.01, fill="seagreen")+
   geom_vline(xintercept=34.18734, col="forestgreen", linetype=2, size=1)+ #for FCM vegetated estimated
@@ -89,7 +90,7 @@ dev.off()
 
 #NOT USED validated inundation tolerance line
 data_nm$vldt_inundation<-3.45+0.5526*data_nm$Inundation #the parameter were acquired from 'model 3' at line 338 of 'comparision with bishop water gauge'
-tiff("validated response to inudnation.tiff",  unit="in",width =4, height =5, res= 600,pointsize = 14)
+tiff("Result/validated response to inudnation.tiff",  unit="in",width =4, height =5, res= 600,pointsize = 14)
 P<-ggplot(data_nm,fill=Species)+
   geom_point(aes(x=Inundation, y=nm,fill=Species,colour=Species), shape=1, size=1)+
   geom_smooth(aes(x=Inundation, y=nm, colour=Species, fill=Species),method = "lm", formula = y ~ poly(x, 2))+
