@@ -24,11 +24,57 @@ DI_TC$DI_TC<-DI_TC$`Sensor depth (Meters)`
 DI_H$DI_H<-DI_H$`Sensor depth (Meters)`
 DI_E$DI_E<-DI_E$`Sensor depth (Meters)`
 DI_P$DI_P<-DI_P$`Sensor depth (Meters)`
-#merge groundwater data from different sites from Deal Island
+
+#1.2 load groundwater data of FCM
+FCM_HC<-read_excel("Data/20574349_FCM_G_HC.xlsx")
+FCM_DC<-read_excel("Data/20574347_FCM_G_DC.xlsx")
+FCM_PC<-read.csv("Data/Site4S-FCM_G_PC.csv",header = T)#the time is in EST
+#Sensor depth of healthy and dieback
+FCM_HC$FCM_HC<-FCM_HC$`Sensor depth (Meters)`
+FCM_DC$FCM_DC<-FCM_DC$`Sensor depth (Meters)`
+
+#1.3 correct any datastamp mistakes in rawdata
+for (i in c("DI_TC", "DI_H","DI_E","DI_P", "FCM_DC","FCM_HC")) {
+ df<-get(i) 
+  df$`Time, GMT-04:00`<-as.POSIXct(df$`Time, GMT-04:00`, format = "%d/%m/%Y %H:%M:%S")
+  problem_index<- which(diff(df$`Time, GMT-04:00`) < 0)
+  
+  if (length(problem_index)!=0) {
+    df$`Time, GMT-04:00`[problem_index + 1] <- df$`Time, GMT-04:00`[problem_index + 1] + 
+      as.difftime(1, units = "days")
+    problem_index<- which(diff(df$`Time, GMT-04:00`) < 0)
+    print(i)
+    print(problem_index)
+    assign(i, df, envir = .GlobalEnv)
+  }
+  else next
+}
+
+for (i in c("FCM_PC")) {
+  df<-get(i) 
+  df$DateTime<-as.POSIXct(df$DateTime, format = "%d/%m/%Y %H:%M:%S")
+  problem_index<- which(diff(df$DateTime) < 0)
+  
+  if (length(problem_index)!=0) {
+    df$DateTime[problem_index + 1] <- df$DateTime[problem_index + 1] + 
+      as.difftime(1, units = "days")
+    problem_index<- which(diff(df$DateTime) < 0)
+    print(i)
+    print(problem_index)
+    assign(i, df, envir = .GlobalEnv)
+  }
+  else next
+}
+
+
+
+#1.4 merge groundwater data from different sites from Deal Island
 DI<-NULL
 DI<-merge(DI_TC,DI_H,by="Time, GMT-04:00")
 DI<-merge(DI,DI_E,by="Time, GMT-04:00")
 DI<-merge(DI,DI_P,by="Time, GMT-04:00")
+
+
 #extract groundwater data from different sites of Deal Island and generate groundwater data file for Deal Island
 DI_SD<-data.frame("DateTime"=DI$`Time, GMT-04:00`,TC=DI$DI_TC,H=DI$DI_H,E=DI$DI_E,P=DI$DI_P)
 #DI_SD$DateTime<-ymd_hms(DI_SD$DateTime,tz="US/Eastern") #define time with lubridate
@@ -37,13 +83,8 @@ DI_SD$DateTime <- lubridate::force_tz(DI_SD$DateTime, tzone = "US/Eastern")
 #remove original DI dataset
 rm(DI_E,DI_H,DI_P,DI_TC,DI)
 
-#1.2 load groundwater of Farm Creek Marsh
-FCM_HC<-read_excel("Data/20574349_FCM_G_HC.xlsx")
-FCM_DC<-read_excel("Data/20574347_FCM_G_DC.xlsx")
-FCM_PC<-read.csv("Data/Site4S-FCM_G_PC.csv",header = T)#the time is in EST
-#Sensor depth of healthy and dieback
-FCM_HC$FCM_HC<-FCM_HC$`Sensor depth (Meters)`
-FCM_DC$FCM_DC<-FCM_DC$`Sensor depth (Meters)`
+#1.5 load groundwater of Farm Creek Marsh
+
 FCM<-NULL
 FCM<-merge(FCM_HC,FCM_DC,by="Time, GMT-04:00")
 FCM_SD<-data.frame("DateTime"=FCM$`Time, GMT-04:00`,H=FCM$FCM_HC,E=FCM$FCM_DC) #datetime in EST
@@ -114,6 +155,44 @@ DI_WL_MSL$TC[which(is.na(DI_WL_MSL$TC)==T)] <- a$y
 ################################################################################
 Marsh_surf_ele<-well_ele$Soil_surface_elevation.m._2019
 par(mai<-c(0.1,0.1,0.1,0.5),cex=1,font=1,cex.lab=1,cex.axis=1,cex.main=1)
+
+
+par(mfrow=c(2,2))
+smoothScatter(DI_WL_MSL$P, DI_WL_MSL$H,
+              xlim = c(0.1, 0.6),
+              ylim = c(0.1, 0.6),
+              xlab = "Water level at Pond", ylab = "Water level at Healthy Patch",
+              main = "DI") #healthy vs dieback
+abline(a = 0, b = 1, col = "red", lwd = 2, lty = 2)  # 1:1 line
+
+smoothScatter(DI_WL_MSL$P, DI_WL_MSL$E,
+              xlim = c(0.1, 0.6),
+              ylim = c(0.1, 0.6),
+              xlab = "Water level at Pond", ylab = "Water level at Dieback Patch",
+              main = "DI") #healthy vs dieback
+abline(a = 0, b = 1, col = "red", lwd = 2, lty = 2)  # 1:1 line
+
+smoothScatter(DI_WL_MSL$H, DI_WL_MSL$E,
+              xlim = c(0.1, 0.6),
+              ylim = c(0.1, 0.6),
+              xlab = "Water level at Healthy Patch", ylab = "Water level at Deiback Patch",
+              main = "DI") #healthy vs dieback
+abline(a = 0, b = 1, col = "red", lwd = 2, lty = 2)  # 1:1 line
+
+smoothScatter(FCM_WL_MSL$H, FCM_WL_MSL$E,
+              xlim = c(0.1, 0.6),
+              ylim = c(0.1, 0.6),
+              xlab = "Water level at Healthy Patch", ylab = "Water level at Deiback Patch",
+              main = "FCM") #healthy vs dieback
+abline(a = 0, b = 1, col = "red", lwd = 2, lty = 2)  # 1:1 line
+
+plot(DI_WL_MSL$H[13100:13150], DI_WL_MSL$E[13100:13150], type = "l")
+points(DI_WL_MSL$E[1:800], DI_WL_MSL$P[1:800], col="blue") #healthy vs pond
+lines(seq(0,1,0.1), seq(0,1,0.1), col="red")
+
+plot(DI_WL_MSL$DateTime[13100:13150], DI_WL_MSL$E[13100:13150], type = "l")
+plot(DI_WL_MSL$DateTime[13100:13150], DI_WL_MSL$H[13100:13150], type = "l")
+
 tiff("Result/Water level 2019-2020 .tiff",units="in",width = 6,height=8,res=300)
 par(mfrow=c(2,1))
 
