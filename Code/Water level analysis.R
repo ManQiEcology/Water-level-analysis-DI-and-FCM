@@ -161,37 +161,40 @@ par(mfrow=c(2,2))
 smoothScatter(DI_WL_MSL$P, DI_WL_MSL$H,
               xlim = c(0.1, 0.6),
               ylim = c(0.1, 0.6),
-              xlab = "Water level at Pond", ylab = "Water level at Healthy Patch",
+              xlab = "Water level at Pond (m)", ylab = "Water level at Healthy Patch (m)",
               main = "DI") #healthy vs dieback
 abline(a = 0, b = 1, col = "red", lwd = 2, lty = 2)  # 1:1 line
+lines(DI_WL_MSL$P[1:3072], DI_WL_MSL$H[1:3072], 
+      col = rgb(1, 1, 0, alpha = 0.5))
 
 smoothScatter(DI_WL_MSL$P, DI_WL_MSL$E,
               xlim = c(0.1, 0.6),
               ylim = c(0.1, 0.6),
-              xlab = "Water level at Pond", ylab = "Water level at Dieback Patch",
+              xlab = "Water level at Pond (m)", ylab = "Water level at Dieback Patch (m)",
               main = "DI") #healthy vs dieback
 abline(a = 0, b = 1, col = "red", lwd = 2, lty = 2)  # 1:1 line
+lines(DI_WL_MSL$P[1:3072], DI_WL_MSL$E[1:3072], 
+      col = rgb(1, 1, 0, alpha = 0.5))
 
 smoothScatter(DI_WL_MSL$H, DI_WL_MSL$E,
               xlim = c(0.1, 0.6),
               ylim = c(0.1, 0.6),
-              xlab = "Water level at Healthy Patch", ylab = "Water level at Deiback Patch",
+              xlab = "Water level at Healthy Patch (m)", ylab = "Water level at Deiback Patch (m)",
               main = "DI") #healthy vs dieback
 abline(a = 0, b = 1, col = "red", lwd = 2, lty = 2)  # 1:1 line
+lines(DI_WL_MSL$H[1:3072], DI_WL_MSL$E[1:3072], 
+      col = rgb(1, 1, 0, alpha = 0.5))
 
 smoothScatter(FCM_WL_MSL$H, FCM_WL_MSL$E,
               xlim = c(0.1, 0.6),
               ylim = c(0.1, 0.6),
-              xlab = "Water level at Healthy Patch", ylab = "Water level at Deiback Patch",
+              xlab = "Water level at Healthy Patch (m)", ylab = "Water level at Deiback Patch (m)",
               main = "FCM") #healthy vs dieback
 abline(a = 0, b = 1, col = "red", lwd = 2, lty = 2)  # 1:1 line
+lines(FCM_WL_MSL$H[1:3072], FCM_WL_MSL$E[1:3072],  
+      col = rgb(1, 1, 0, alpha = 0.5))
 
-plot(DI_WL_MSL$H[13100:13150], DI_WL_MSL$E[13100:13150], type = "l")
-points(DI_WL_MSL$E[1:800], DI_WL_MSL$P[1:800], col="blue") #healthy vs pond
-lines(seq(0,1,0.1), seq(0,1,0.1), col="red")
 
-plot(DI_WL_MSL$DateTime[13100:13150], DI_WL_MSL$E[13100:13150], type = "l")
-plot(DI_WL_MSL$DateTime[13100:13150], DI_WL_MSL$H[13100:13150], type = "l")
 
 tiff("Result/Water level 2019-2020 .tiff",units="in",width = 6,height=8,res=300)
 par(mfrow=c(2,1))
