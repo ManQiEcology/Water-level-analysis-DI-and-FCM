@@ -148,7 +148,28 @@ for (i in which(is.na(DI_WL_MSL$TC)==T)) { #replace NA data with bishop+0.07
 model <- lm(TC ~ DateTime, data = DI_WL_MSL) 
 a<-approx(DI_WL_MSL$DateTime, DI_WL_MSL$TC, xout=DI_WL_MSL$DateTime[which(is.na(DI_WL_MSL$TC)==T)])
 DI_WL_MSL$TC[which(is.na(DI_WL_MSL$TC)==T)] <- a$y
-#data in healthy and dieback patch of DI is incorrect at high water level
+
+#correct constant difference in water level across interior marsh using spring high tide
+spring_HT_time_1<-as.POSIXct("2019-05-16 14:29:00", tz="US/Eastern")#based on manually observation at interior marsh of DI and FCM
+spring_HT_time_2<-as.POSIXct("2019-05-16 15:00:00", tz="US/Eastern") #this 
+
+
+
+row_ID_DI<-which(DI_WL_MSL$DateTime==spring_HT_time_2)
+row_ID_FCM_HE<-which(FCM_WL_MSL$DateTime==spring_HT_time_2)
+row_ID_FCM_P<-which(FCM_PC$DateTime==spring_HT_time_1)
+
+offset_dieback_DI<-DI_WL_MSL$H[row_ID_DI]-DI_WL_MSL$E[row_ID_DI]
+offset_pond_DI<-DI_WL_MSL$H[row_ID_DI]-DI_WL_MSL$P[row_ID_DI]
+
+offset_dieback_FCM <- FCM_WL_MSL$H[row_ID_FCM_HE] - FCM_WL_MSL$E[row_ID_FCM_HE]
+offset_pond_FCM <- FCM_WL_MSL$H[row_ID_FCM_HE] - FCM_PC$waterlevel[row_ID_FCM_P]
+
+DI_WL_MSL$E<-DI_WL_MSL$E+offset_dieback_DI
+DI_WL_MSL$P<-DI_WL_MSL$P+offset_pond_DI
+
+FCM_WL_MSL$E<-FCM_WL_MSL$E + offset_dieback_FCM
+FCM_PC$waterlevel <- FCM_PC$waterlevel + offset_pond_FCM
 
 ################################################################################
 #3. FIGURE1_Water level time series (NAVD 88)
@@ -197,15 +218,18 @@ lines(FCM_WL_MSL$H[1:3072], FCM_WL_MSL$E[1:3072],
 
 
 tiff("Result/Water level 2019-2020 .tiff",units="in",width = 6,height=8,res=300)
-par(mfrow=c(2,1))
+par(mfrow=c(1,1))
 
 plot(DI_WL_MSL$DateTime,DI_WL_MSL$TC,type="l",col="grey", 
-     xlim=c(ymd_hm("2019-05-02 00:00"),ymd_hm("2020-03-04 23:00")),
+     #xlim=c(ymd_hm("2019-05-02 00:00"),ymd_hm("2020-03-04 23:00")),
      #xlim=c(ymd_hm("2019-05-02 00:00"),ymd_hm("2019-05-10 23:00")), #alternative time range for inset
-     ylim=c(-0.6,1.2),
-     #ylim=c(-0.2,0.8), #alternative y axis scale for inset 
+     xlim=c(ymd_hm("2019-05-13 00:00"),ymd_hm("2019-05-20 23:00")),
+     #ylim=c(-0.6,1.2),
+     ylim=c(-0.2,0.8), #alternative y axis scale for inset 
      xlab = "", 
-     ylab="",
+     #ylab="",
+     main = "Deal Island",
+     ylab="Water level (m, NAVD 88) ", las=3
      #xaxt = "n"
      )
 
@@ -224,13 +248,15 @@ legend(x="topleft",legend=c("Tidal creek", "Pond","Dieback zone","Vegetated zone
        lty = c("solid","solid","solid","solid"),
        ncol=2,bty = "n",cex = 1)
 plot(bishop$DateTime,bishop$TH,type="l",col="gray", 
-     xlim=c(ymd_hm("2019-05-02 00:00"),ymd_hm("2020-03-04 23:00")),
+     #xlim=c(ymd_hm("2019-05-02 00:00"),ymd_hm("2020-03-04 23:00")),
      #xlim=c(ymd_hm("2019-05-02 00:00"),ymd_hm("2019-05-10 23:00")),  #alternative time range for inset
-     ylim=c(-0.6,1.2),
-     #ylim=c(-0.2,0.8), #alternative y axis scale for inset 
-     xlab = "Time (Date)", 
+     xlim=c(ymd_hm("2019-05-13 00:00"),ymd_hm("2019-05-20 23:00")),  #alternative time range for inset
+     #ylim=c(-0.6,1.2),
+     ylim=c(-0.2,0.8), #alternative y axis scale for inset 
+     #xlab = "Time (Date)", 
+     xlab = "", 
+     main = "Farm Creek Marsh",
      ylab="Water level (m, NAVD 88) ", las=3
-     #xlab = "", 
      #ylab="",
      )
 
