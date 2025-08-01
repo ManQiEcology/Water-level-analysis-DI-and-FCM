@@ -49,20 +49,20 @@ dev.off()
 
 #plot the response marsh species to inundation  (merge above- and below- ground biomass response and studies from different regions)
 tiff("Result/response to inudnation in DI.tiff",  unit="in",width =2.5, height =5, res= 600,pointsize = 14)
-P<-ggplot(data_nm, aes(x=Inundation, y=nm),fill=Species)+
+P1<-ggplot(data_nm, aes(x=Inundation, y=nm),fill=Species)+
   #geom_rect(aes(xmin=34.18734, xmax=65.0834, ymin=0,ymax=1), alpha=0.01, fill="seagreen")+
   geom_vline(xintercept=38.48448, col="forestgreen", linetype=2, size=1)+ #for DI vegetated estimated
-  geom_vline(xintercept=60.659, col="forestgreen", linetype=1, size=1)+ #for DI vegetated in situ
+  geom_vline(xintercept=60.88521, col="forestgreen", linetype=1, size=1)+ #for DI vegetated in situ
   geom_vline(xintercept=49.369, col="darkorange", linetype=2, size=1)+ #for DI dieback estimated
-  geom_vline(xintercept=99.0, col="darkorange", linetype=1, size=1)+ #for DI dieback in situ
+  geom_vline(xintercept=98.02118, col="darkorange", linetype=1, size=1)+ #for DI dieback in situ
   geom_vline(xintercept=67.12756, col="royalblue", linetype=2, size=1)+ #for DI pond estimated
-  geom_vline(xintercept=99.98686, col="royalblue", linetype=1, size=1)+ #for DI pond in situ
+  geom_vline(xintercept=100.00, col="royalblue", linetype=1, size=1)+ #for DI pond in situ
   geom_point(aes(x=Inundation, y=nm), shape=1, size=1,col="gray")+
   geom_smooth(aes(group=Species),col="gray40", method = "lm", formula = y ~ poly(x, 2))+
   xlab("Time inundated (%)")+
   ylab("Performance")
   
-P+facet_grid(rows = vars(Species),scales="free")+
+P1+facet_grid(rows = vars(Species),scales="free")+
   theme_bw()+
   theme(panel.grid.major = element_blank(),
         panel.grid.minor = element_blank())
@@ -74,7 +74,7 @@ P<-ggplot(data_nm, aes(x=Inundation, y=nm),fill=Species)+
   geom_vline(xintercept=34.18734, col="forestgreen", linetype=2, size=1)+ #for FCM vegetated estimated
   geom_vline(xintercept=65.0834, col="forestgreen", linetype=1, size=1)+ #for FCM vegetated in situ
   geom_vline(xintercept=35.89535, col="darkorange", linetype=2, size=1)+ #for FCM dieback estimated
-  geom_vline(xintercept=70.75392, col="darkorange", linetype=1, size=1)+ #for FCM dieback in situ
+  geom_vline(xintercept=98.13475, col="darkorange", linetype=1, size=1)+ #for FCM dieback in situ
   geom_vline(xintercept=60.78352, col="royalblue", linetype=2, size=1)+ #for FCM pond estimated
   geom_vline(xintercept=100.000, col="royalblue", linetype=1, size=1)+ #for FCM pond in situ
   geom_point(aes(x=Inundation, y=nm), shape=1, size=1,col="gray")+

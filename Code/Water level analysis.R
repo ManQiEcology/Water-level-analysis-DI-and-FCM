@@ -119,12 +119,19 @@ logger_elevation<-well_ele$Well_top_elevation.m._2020-well_ele$Well_top_to_logge
 DI_WL_MSL<-data.frame("DateTime"=DI_SD$DateTime,
                       TC=DI_SD$TC-Logger_depth[1]+surface_elevation[1], 
                       H=DI_SD$H+surface_elevation[4]-Logger_depth[4], #marsh elevation might decreased by 4cm from 2019 May to 2020 March
+                      #H=DI_SD$H+logger_elevation[4],
                       E=DI_SD$E+surface_elevation[2]-Logger_depth[2], #marsh surface elevation and well elevation might decreased by 2cm from 2019 May to 2020 Mar
-                      P=DI_SD$P+surface_elevation[3]-Logger_depth[3]) # marsh surface elevation and well elevation variation is around 1cm from 2019 May to 2020 March
+                      #E=DI_SD$E+logger_elevation[2],
+                      P=DI_SD$P+surface_elevation[3]-Logger_depth[3]
+                      #P=DI_SD$P+logger_elevation[3]
+                      ) # marsh surface elevation and well elevation variation is around 1cm from 2019 May to 2020 March
 
 FCM_WL_MSL<-data.frame("DateTime"=FCM_SD$DateTime,
                        H=FCM_SD$H+surface_elevation[7]-Logger_depth[7], #marsh elevation decrease by 2cm, but surface accreation increase by 2cm
-                       E=FCM_SD$E+0.5*(surface_elevation[6]-Logger_depth[6]+logger_elevation[6]))# since marsh surface elevation and well elevation increased by 0.58 cm from 2019 May to 2020 March, we use average logger height
+                       #H=FCM_SD$H+logger_elevation[7],
+                       E=FCM_SD$E+0.5*(surface_elevation[6]-Logger_depth[6]+logger_elevation[6])
+                       #E=FCM_SD$E+logger_elevation[6]
+                       )# since marsh surface elevation and well elevation increased by 0.58 cm from 2019 May to 2020 March, we use average logger height
 
 #load bishop tide water,Datum:NAVD88
 bishop<-as.data.frame(read.csv("Data/bishop.csv",header = T))
@@ -178,7 +185,7 @@ Marsh_surf_ele<-well_ele$Soil_surface_elevation.m._2019
 par(mai<-c(0.1,0.1,0.1,0.5),cex=1,font=1,cex.lab=1,cex.axis=1,cex.main=1)
 
 
-par(mfrow=c(2,2))
+par(mfrow=c(1,3))
 smoothScatter(DI_WL_MSL$P, DI_WL_MSL$H,
               xlim = c(0.1, 0.6),
               ylim = c(0.1, 0.6),
@@ -217,46 +224,46 @@ lines(FCM_WL_MSL$H[1:3072], FCM_WL_MSL$E[1:3072],
 
 
 
-tiff("Result/Water level 2019-2020 .tiff",units="in",width = 6,height=8,res=300)
+tiff("Result/Water level 2019-2020_inset .tiff",units="in",width = 6,height=6,res=600)
 par(mfrow=c(1,1))
 
 plot(DI_WL_MSL$DateTime,DI_WL_MSL$TC,type="l",col="grey", 
      #xlim=c(ymd_hm("2019-05-02 00:00"),ymd_hm("2020-03-04 23:00")),
      #xlim=c(ymd_hm("2019-05-02 00:00"),ymd_hm("2019-05-10 23:00")), #alternative time range for inset
-     xlim=c(ymd_hm("2019-05-13 00:00"),ymd_hm("2019-05-20 23:00")),
+     xlim=c(ymd_hm("2019-11-15 00:00"),ymd_hm("2019-11-23 23:00")),
      #ylim=c(-0.6,1.2),
      ylim=c(-0.2,0.8), #alternative y axis scale for inset 
      xlab = "", 
      #ylab="",
-     main = "Deal Island",
-     ylab="Water level (m, NAVD 88) ", las=3
+     #main = "Deal Island",
+     #ylab="Water level (m, NAVD 88) ", las=3
      #xaxt = "n"
      )
 
 lines(DI_WL_MSL$DateTime,DI_WL_MSL$H,col="seagreen")
 lines(DI_WL_MSL$DateTime,DI_WL_MSL$E,col="darkorange")
 lines(DI_WL_MSL$DateTime,DI_WL_MSL$P,col="royalblue")
-time1<-DI_WL_MSL$DateTime
+time1<-range(DI_WL_MSL$DateTime)
 
 lines(time1,rep(Marsh_surf_ele[1],length(time1)),lty="dashed",col="grey",lwd=1)
 lines(time1,rep(Marsh_surf_ele[4],length(time1)),lty="dashed",col="seagreen",lwd=1) #plot "elevation of healthy path minus elevation of tidal creek"
 lines(time1,rep(Marsh_surf_ele[2],length(time1)),lty="dashed",col="darkorange",lwd=1) #plot "elevation of dieback minus elevation of tidal creek"
 lines(time1,rep(Marsh_surf_ele[3],length(time1)),lty="dashed",col="royalblue",lwd=1) #plot "elevation of pond minus elevation of tidal creek"
 text(ymd_hms("2020-01-01 00:00:00",tz="US/Eastern"),1.0,"Deal Island",col="black",font=3,pos=4,xpd=T,cex = 1)
-legend(x="topleft",legend=c("Tidal creek", "Pond","Dieback zone","Vegetated zone"),
-       col=c("gray","royalblue","darkorange","seagreen"),
-       lty = c("solid","solid","solid","solid"),
-       ncol=2,bty = "n",cex = 1)
+#legend(x="topleft",legend=c("Tidal creek", "Pond","Dieback zone","Vegetated zone"),
+#       col=c("gray","royalblue","darkorange","seagreen"),
+#       lty = c("solid","solid","solid","solid"),
+#       ncol=2,bty = "n",cex = 1)
 plot(bishop$DateTime,bishop$TH,type="l",col="gray", 
      #xlim=c(ymd_hm("2019-05-02 00:00"),ymd_hm("2020-03-04 23:00")),
      #xlim=c(ymd_hm("2019-05-02 00:00"),ymd_hm("2019-05-10 23:00")),  #alternative time range for inset
-     xlim=c(ymd_hm("2019-05-13 00:00"),ymd_hm("2019-05-20 23:00")),  #alternative time range for inset
+     xlim=c(ymd_hm("2019-11-15 00:00"),ymd_hm("2019-11-23 23:00")),
      #ylim=c(-0.6,1.2),
      ylim=c(-0.2,0.8), #alternative y axis scale for inset 
      #xlab = "Time (Date)", 
      xlab = "", 
-     main = "Farm Creek Marsh",
-     ylab="Water level (m, NAVD 88) ", las=3
+     #main = "Farm Creek Marsh",
+     #ylab="Water level (m, NAVD 88) ", las=3
      #ylab="",
      )
 
@@ -279,15 +286,112 @@ L_FCM_PC<-dim(FCM_PC)[1]
 L_bishop<-dim(bishop)[1]
 hist_DI<-data.frame(WL=c(DI_WL_MSL$TC,DI_WL_MSL$H,DI_WL_MSL$E,DI_WL_MSL$P),
                     Zone=c(rep("Tidal creek",L),rep("Vegetated zone",L),rep("Dieback zone",L),rep("Pond",L)))
-hist_DI$Zone<-factor(hist_DI$Zone,levels=unique(hist_DI$Zone))
 #prepare data of FCM--hist_FCM
 hist_FCM<-data.frame(WL=c(bishop$TH,FCM_WL_MSL$H,FCM_WL_MSL$E,FCM_PC$waterlevel),
                      Zone=c(rep("Tidal creek",L_bishop),rep("Vegetated zone",L_FCM_HE),rep("Dieback zone",L_FCM_HE),rep("Pond",L_FCM_PC)))
-hist_FCM$Zone<-factor(hist_FCM$Zone,levels=unique(hist_FCM$Zone))
 
-#plot DI
+
+for (i in c("hist_DI", "hist_FCM")) {
+  Data <- get(i)
+  
+  # Select appropriate elevation values
+  ele <- if (i == "hist_DI") {
+    Marsh_surf_ele[c(1, 3, 2, 4)]
+  } else {
+    Marsh_surf_ele[c(1, 9, 6, 7)]
+  }
+  
+  # Name the elevations for zone lookup
+  names(ele) <- c("Tidal creek", "Pond", "Dieback zone", "Vegetated zone")
+  
+  # Assign surface elevation based on Zone
+  Data$Surface_elevation <- ele[as.character(Data$Zone)]
+  
+  # Calculate water level relative to surface
+  Data$WL_SoilSurf <- Data$WL - Data$Surface_elevation
+  
+  # Classify water type
+  Data$WL_type <- ifelse(Data$WL_SoilSurf >= 0, "Surface water level", "Groundwater table")
+  
+  # Save back to environment
+  assign(i, Data)
+}
+
+
+# Add site labels and combine datasets
+
 library(ggplot2)
-tiff("Result/histogram DI 2019-2020 .tiff",units="in",width = 3.5,height=1.5,res=300)
+library(dplyr)
+hist_DI$Site <- "DI"
+hist_FCM$Site <- "FCM"
+hist <- bind_rows(hist_DI, hist_FCM)
+
+tiff("Result/histogram 2019-2020 .tiff",units="in",width = 6,height=5,res=300)
+p<-ggplot(hist, aes(x = WL_SoilSurf, fill = Zone)) +
+  geom_histogram(aes(y = stat(width*density)), position = "identity", alpha = 0.6, bins =100) +
+  #scale_y_continuous(labels = scales::percent_format(),limits = c(0,0.2))+
+  #geom_density(alpha=0.2)+
+  labs(
+    x = "Water level relative to soil surface (m)",
+    y = "Frequency",
+    fill = "Marsh Zone"
+  ) +
+  theme_bw()  +
+  theme(panel.grid=element_blank(),
+        plot.title = element_text(size = rel(1.5),
+                                  face = "bold", vjust = 1.5),
+        axis.title = element_text(face = "bold"),
+        legend.direction = "vertical",
+        legend.background = element_rect(fill = NA),
+        legend.position =c(0.8, 0.9),
+        legend.title = element_blank(),
+        legend.key.size = unit(0.3, "cm"),
+        #legend.key = element_rect(fill = "black"),
+        axis.title.y = element_text(vjust= 1.8),
+        axis.title.x = element_text(vjust= -0.5))+
+  guides(fill=guide_legend(ncol=2))
+p+ facet_grid(Site ~ WL_type) +
+  scale_fill_manual(
+    values = c("Tidal creek" = "black",
+               "Vegetated zone" = "seagreen",
+               "Dieback zone" = "darkorange",
+               "Pond" = "royalblue")
+  )
+dev.off()
+
+
+p<-ggplot(FD, aes(x=`Duration (hr)`, color=Zone, fill=Zone)) +
+  #ylim(0,1)+
+  #xlim(0,24)+
+  geom_histogram(aes(y= stat(width*density)),binwidth = 1,position="identity",alpha=0.5,bins=100)+ #position = "identity", alpha = 0.6, bins =100
+  scale_y_continuous(labels = scales::percent_format(),limits = c(0,1.00))+
+  geom_density(alpha=0.2)+
+  xlim(0,24.5)+
+  #geom_vline(data=mu, aes(xintercept=grp.mean, color=Zone),
+  #           linetype="dashed")+# Add mean lines
+  
+  labs(x = "Daily inundation duration (hour)",
+       y = "Frequency") +
+  theme_bw()  +
+  theme(panel.grid=element_blank(),
+        plot.title = element_text(size = rel(1.5),
+                                  face = "bold", vjust = 1.5),
+        axis.title = element_text(face = "bold"),
+        legend.direction = "horizontal", 
+        legend.background = element_rect(fill = NA),
+        legend.position =c(0.20, 0.9),
+        legend.title = element_blank(),
+        legend.key.size = unit(0.3, "cm"),
+        #legend.key = element_rect(fill = "black"),
+        axis.title.y = element_text(vjust= 1.8),
+        axis.title.x = element_text(vjust= -0.5))+
+  guides(fill=guide_legend(ncol=2))
+
+p+facet_grid(rows=vars(Site),cols = vars(Method))+
+  scale_fill_manual(values=c("seagreen", "darkorange", "royalblue"))+
+  scale_color_manual(values=c("seagreen", "darkorange", "royalblue"))
+
+tiff("Result/histogram DI 2019-2020 .tiff",units="in",width = 3.5,height=1.5,res=600)
 DI<-ggplot(hist_DI, aes(x = WL, fill = Zone)) +                       # Draw overlaying histogram
   geom_histogram(aes(y = stat(width*density)), position = "identity", alpha = 0.6, bins =100)+
   scale_y_continuous(labels = scales::percent_format(),limits = c(0,0.2))+
@@ -305,11 +409,18 @@ DI<-ggplot(hist_DI, aes(x = WL, fill = Zone)) +                       # Draw ove
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
         panel.border = element_blank())
-DI+scale_fill_manual(values = c("black", "seagreen", "darkorange", "royalblue"))
+
+DI+scale_fill_manual(values = c("black", "seagreen", "darkorange", "royalblue"))+
+  geom_vline(xintercept = Marsh_surf_ele[1], linetype = "dashed", color = "grey", size = 0.3) +
+  geom_vline(xintercept = Marsh_surf_ele[4], linetype = "dashed", color = "seagreen", size = 0.3) +
+  geom_vline(xintercept = Marsh_surf_ele[2], linetype = "dashed", color = "darkorange", size = 0.3) +
+  geom_vline(xintercept = Marsh_surf_ele[3], linetype = "dashed", color = "royalblue", size = 0.3)
+  
+
 dev.off()
 
 #plot FCM                    
-tiff("Result/histogram FCM 2019-2020 .tiff",units="in",width = 3.5,height=1.5,res=300)
+tiff("Result/histogram FCM 2019-2020 .tiff",units="in",width = 3.5,height=1.5,res=600)
 FCM<-ggplot(hist_FCM, aes(x = WL, fill = Zone)) +                       # Draw overlaying histogram
   geom_histogram(aes(y = stat(width*density)), position = "identity", alpha = 0.6, bins =100)+
   scale_y_continuous(labels = scales::percent_format(),limits = c(0,0.2))+
@@ -323,7 +434,11 @@ FCM<-ggplot(hist_FCM, aes(x = WL, fill = Zone)) +                       # Draw o
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
         panel.border = element_blank())
-FCM+scale_fill_manual(values = c("black", "seagreen", "darkorange", "royalblue"))
+FCM+scale_fill_manual(values = c("black", "seagreen", "darkorange", "royalblue"))+
+  geom_vline(xintercept = Marsh_surf_ele[7], linetype = "dashed", color = "seagreen", size = 0.3) +
+  geom_vline(xintercept = Marsh_surf_ele[6], linetype = "dashed", color = "darkorange", size = 0.3) +
+  geom_vline(xintercept = Marsh_surf_ele[9], linetype = "dashed", color = "royalblue", size = 0.3)
+
 dev.off()
 #######################################################################################
 #5.FIGURE 2a and 2b: calculate and plot soil saturation index SSI=0 means hydroperid, SSI= 0.2 means fraction of tidal period over which the soil remains fully saturated at depth of SSI
@@ -386,14 +501,15 @@ library(ggrepel)
 hydrpd_TCNA<-subset(hydrpd,hydrpd$Zone!="TC")
 hydrpd_TC<-subset(hydrpd,hydrpd$Zone=="TC")
 
-tiff("Result/SSI or hydroperiod.tiff", unit="in",width = 2.3, height =2.3, res= 600,pointsize = 14 )
+tiff("Result/SSI.tiff", unit="in",width = 2.3, height =2.3, res= 600,pointsize = 14 )
 p<-ggplot(hydrpd_TCNA,aes(x=Elevation,y=Hydroperiod,fill=Method))+
   geom_point(aes(colour=Method,shape=Site),size=2)+
   scale_shape_manual(values=c(1, 19))+
   xlim(-0.1,0.3)+
   ylim(0.25,1.2)+
   labs(x = "Elevation (m, NAVD88)",
-       y = "Soil satuation index")+
+       y = "Soil satuation index at 0.2 m")+
+       #y= "Hydroperiod")+
   geom_smooth(aes(colour=Method, fill=Method),method = "glm",  
               method.args = list(family = "binomial"), 
               se = FALSE)+
@@ -431,8 +547,8 @@ summary(model2)
 #6. FIGURE 3 sensitivity to elevation loss
 ################################################################################
 #6.1 caculate SSI at Marsh interior
-#SSI<-0.0 #for FIGURE 3a- hydroperiod
-SSI<-0.2 #for for FIGURE 3b-SSI0.2
+SSI<-0.0 #for FIGURE 3a- hydroperiod
+#SSI<-0.2 #for for FIGURE 3b-SSI0.2
 DI_WL_SS_ele<-data.frame("DateTime"=DI_WL_MSL$DateTime,
                      H=DI_WL_MSL$H-surface_elevation[4]+SSI,
                      E=DI_WL_MSL$E-surface_elevation[2]+SSI,
