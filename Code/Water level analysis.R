@@ -329,7 +329,7 @@ hist <- bind_rows(hist_DI, hist_FCM)
 tiff("Result/histogram 2019-2020 .tiff",units="in",width = 6,height=5,res=300)
 p<-ggplot(hist, aes(x = WL_SoilSurf, fill = Zone)) +
   geom_histogram(aes(y = stat(width*density)), position = "identity", alpha = 0.6, bins =100) +
-  #scale_y_continuous(labels = scales::percent_format(),limits = c(0,0.2))+
+  scale_y_continuous(labels = scales::percent_format())+
   #geom_density(alpha=0.2)+
   labs(
     x = "Water level relative to soil surface (m)",
